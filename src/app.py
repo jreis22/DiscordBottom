@@ -1,15 +1,6 @@
-import discord
-from discord.ext import commands
-import json
+from bot import Bot
 
-bot = commands.Bot(command_prefix='!')
-
-
-@bot.command()
-async def ping(ctx):
-    await ctx.send('pong')
-
-with open('user-config.json', 'r') as f:
-    config = json.load(f)
-
-bot.run(config['TOKEN'])
+bot = Bot()
+print(bot.config)
+bot.log_in()
+print('bot logged in')
