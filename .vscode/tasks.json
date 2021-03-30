@@ -1,0 +1,124 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "card_test",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_test.py",
+      "presentation": {
+        "group": "grp1"
+      }
+    },
+    {
+      "label": "card_enum_test",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_enum_test.py",
+      "presentation": {
+        "group": "grp1"
+      }
+    },
+    {
+      "label": "card_list_test",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_list_test.py",
+      "presentation": {
+        "group": "grp1"
+      }
+    },
+    {
+      "label": "card_game_test",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_game_test.py",
+      "presentation": {
+        "group": "grp1"
+      }
+    },
+    {
+      "label": "in_memory_game_repo_test",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py in_memory_game_repo_test.py",
+      "presentation": {
+        "group": "grp1"
+      }
+    },
+    {
+      "label": "trick_tacking_game_test",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py trick_tacking_game_test.py",
+      "presentation": {
+        "group": "grp1"
+      }
+    },
+    {
+      "label": "bisca_test",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py bisca_test.py",
+      "presentation": {
+        "group": "grp1"
+      }
+    },
+    {
+      "label": "player_test",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py player_test.py",
+      "presentation": {
+        "group": "grp1"
+      }
+    },
+    {
+      "label": "cards_tests",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_test.py && py card_enum_test.py && py card_list_test.py",
+      "presentation": {
+        "group": "tests",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "card_games_tests",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_game_test.py && py trick_taking_game_test.py && py bisca_test.py",
+      "presentation": {
+        "group": "tests",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "repository_tests",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py in_memory_game_repo_test.py",
+      "presentation": {
+        "group": "tests",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "full_player_tests",
+      "type": "shell",
+      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py player_test.py",
+      "presentation": {
+        "group": "tests",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "run_tests",
+
+      "dependsOn": [
+        "cards_tests",
+        "card_games_tests",
+        "repository_tests",
+        "full_player_tests"
+      ],
+
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+  ]
+}

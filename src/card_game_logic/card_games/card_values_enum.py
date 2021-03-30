@@ -11,7 +11,8 @@ class CardValuesEnum(Enum):
         Rank.KING.value: 4,
         Rank.QUEEN.value: 3,
         Rank.JACK.value: 2
-    }    #ace-seven (for sueca and bisca like games)
+    }
+    #ace-seven (for sueca and bisca like games)
     ACE_SEVEN = {
         Rank.ACE.value: 11,
         Rank.SEVEN.value: 10,

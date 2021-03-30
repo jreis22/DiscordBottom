@@ -7,3 +7,4 @@ class PlayerStateEnum(Enum):
     PASS = 2
     WON = 3
     LOST = 4
+    PENDING = 5

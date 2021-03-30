@@ -1,8 +1,8 @@
 import copy
-from core.repositories.game_repository import GameRepository
-from core.card_games.card_game import CardGame
+from card_game_logic.repositories.game_repository import GameRepository
+from card_game_logic.card_games.card_game import CardGame
 
-class InMemoryGameRepo(GameRepository):
+class InMemoryGameRepository(GameRepository):
 
     def __init__(self):
         self.games = {}

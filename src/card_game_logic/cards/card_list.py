@@ -1,14 +1,15 @@
 import numpy as np
+from typing import List
 from card_game_logic.cards.card import PlayingCard
 from card_game_logic.cards.card_enums import Rank, Suit
 
 
 class CardList:
 
-    def __init__(self, card_list: [PlayingCard] = None):
-        self.set_card_list(card_list)
+    def __init__(self, card_list: List[PlayingCard] = None):
+        self.set_card_list(new_card_list=card_list)
 
-    def set_card_list(self, new_card_list: [PlayingCard]):
+    def set_card_list(self, new_card_list: List[PlayingCard]):
         if new_card_list is None:
             self._card_list = []
         else:
@@ -23,7 +24,7 @@ class CardList:
 
         return dealt_card
 
-    def deal_n_cards(self, n) -> [PlayingCard]:
+    def deal_n_cards(self, n) -> List[PlayingCard]:
         cards_dealt = self._card_list[0:n]
         self._card_list = self._card_list[n:]
         return cards_dealt
@@ -33,7 +34,7 @@ class CardList:
         return True
 
     def remove_card(self, card: PlayingCard) -> bool:
-        if(self._card_list.__contains__(card)):
+        if self._card_list.__contains__(card):
             self._card_list.remove(card)
             return True
         return False
@@ -53,13 +54,13 @@ class CardList:
                 return True
         return False
 
-    def add_cards(self, cards: [PlayingCard]):
+    def add_cards(self, cards: List[PlayingCard]):
         self._card_list = self._card_list + cards
 
     def list_size(self):
         return len(self._card_list)
 
-    def show_cards(self) -> [PlayingCard]:
+    def show_cards(self) -> List[PlayingCard]:
         return self._card_list
     # def sort_by_rank(self, sorter):
 
@@ -69,6 +70,9 @@ class CardList:
     def sort_by_suit(self):
         self.sort_by_rank()
         self._card_list.sort(key=lambda x: x.suit)
+
+    def is_empty(self):
+        return len(self._card_list) == 0
 
     def __eq__(self, other):
         if isinstance(other, CardList):

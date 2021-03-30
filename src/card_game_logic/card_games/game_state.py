@@ -9,7 +9,7 @@ class GameStateEnum(Enum):
     ROUND_START = 2
     ROUND_END = 3
     BETTING_ROUND = 9
-    PLAYER_PHASE = 4
+    PLAYING_PHASE = 4
     GAME_END = 5
     CANCELLED = 6
     SURRENDER = 7

@@ -2,10 +2,10 @@ from card_game_logic.cards.card import PlayingCard
 
 
 class PlayedCard:
-    def __init__(self, player_key, card: PlayingCard, round: int):
+    def __init__(self, player_key, card: PlayingCard, game_round: int):
         self.player_key = player_key
         self.card = card
-        self.round = round
+        self.round = game_round
 
     def __eq__(self, other):
         if isinstance(other, PlayedCard):

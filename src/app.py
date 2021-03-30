@@ -10,6 +10,8 @@ from card_image_dictionary import CardImageDictionary
 #    
 #    for second_key in Rank.get_all():
 #        print(f"{second_key.name}: {second_key.name in cards_config[key.name]}")
+
+#loads a 52(53) card deck into memory
 CardImageDictionary.load_deck()
 
 bot.run(DEFAULT_CONFIG["TOKEN"])
