@@ -1,7 +1,8 @@
 import unittest
 import sys
+from tests_config import TEST_CONFIG
 sys.path.insert(
-    1, '/Users/joao reis/Documents/projects/Discord/Bots/DiscordBottom/DiscordBottom/src/')
+    1, TEST_CONFIG['SRC_PATH'])
 from card_game_logic.cards.card import PlayingCard
 from card_game_logic.cards.card_enums import Rank, Suit
 from card_game_logic.cards.card_list import CardList

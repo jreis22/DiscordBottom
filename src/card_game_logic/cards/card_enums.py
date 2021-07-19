@@ -18,6 +18,10 @@ class Suit(Enum):
     def get_all():
         return [Suit.HEARTS, Suit.CLUBS, Suit.DIAMONDS, Suit.SPADES]
 
+    @staticmethod
+    def get_suit_from_string(string: str):
+        return Suit[string.upper()]
+
     def __eq__(self, other):
         if isinstance(other, Suit):
             return self.value == other.value

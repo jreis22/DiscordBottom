@@ -6,106 +6,154 @@
     {
       "label": "card_test",
       "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_test.py",
+      "command": "C:/Users/\"joao reis\"/.virtualenvs/DiscordBottom-h1DD9b_Q/Scripts/python.exe",
+      "args": ["c:/Users/\"joao reis\"/Documents/projects/Discord/Bots/DiscordBottom/DiscordBottom/tests/card_test.py"],
       "presentation": {
-        "group": "grp1"
+        "group": "grp1",
+        "showReuseMessage":false,
+        "echo":false
       }
     },
     {
       "label": "card_enum_test",
       "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_enum_test.py",
+      "command": "C:/Users/\"joao reis\"/.virtualenvs/DiscordBottom-h1DD9b_Q/Scripts/python.exe",
+      "args": ["c:/Users/\"joao reis\"/Documents/projects/Discord/Bots/DiscordBottom/DiscordBottom/tests/card_enum_test.py"],
       "presentation": {
-        "group": "grp1"
+        "group": "grp1",
+        "showReuseMessage":false,
+        "echo":false
       }
     },
     {
       "label": "card_list_test",
       "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_list_test.py",
+      "command": "C:/Users/\"joao reis\"/.virtualenvs/DiscordBottom-h1DD9b_Q/Scripts/python.exe",
+      "args": ["c:/Users/\"joao reis\"/Documents/projects/Discord/Bots/DiscordBottom/DiscordBottom/tests/card_list_test.py"],
       "presentation": {
-        "group": "grp1"
+        "group": "grp1",
+        "showReuseMessage":false,
+        "echo":false
       }
     },
     {
       "label": "card_game_test",
       "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_game_test.py",
+      "command": "C:/Users/\"joao reis\"/.virtualenvs/DiscordBottom-h1DD9b_Q/Scripts/python.exe",
+      "args": ["c:/Users/\"joao reis\"/Documents/projects/Discord/Bots/DiscordBottom/DiscordBottom/tests/card_game_test.py"],
       "presentation": {
-        "group": "grp1"
+        "group": "grp1",
+        "showReuseMessage":false,
+        "echo":false
       }
     },
     {
       "label": "in_memory_game_repo_test",
       "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py in_memory_game_repo_test.py",
+      "command": "C:/Users/\"joao reis\"/.virtualenvs/DiscordBottom-h1DD9b_Q/Scripts/python.exe",
+      "args": ["c:/Users/\"joao reis\"/Documents/projects/Discord/Bots/DiscordBottom/DiscordBottom/tests/in_memory_game_repo_test.py"],
       "presentation": {
-        "group": "grp1"
+        "group": "grp1",
+        "showReuseMessage":false,
+        "echo":false
       }
     },
     {
       "label": "trick_tacking_game_test",
       "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py trick_tacking_game_test.py",
+      "command": "C:/Users/\"joao reis\"/.virtualenvs/DiscordBottom-h1DD9b_Q/Scripts/python.exe",
+      "args": ["c:/Users/\"joao reis\"/Documents/projects/Discord/Bots/DiscordBottom/DiscordBottom/tests/trick_taking_game_test.py"],
       "presentation": {
-        "group": "grp1"
+        "group": "grp1",
+        "showReuseMessage":false,
+        "echo":false
       }
     },
     {
       "label": "bisca_test",
       "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py bisca_test.py",
+      "command": "C:/Users/\"joao reis\"/.virtualenvs/DiscordBottom-h1DD9b_Q/Scripts/python.exe",
+      "args": ["c:/Users/\"joao reis\"/Documents/projects/Discord/Bots/DiscordBottom/DiscordBottom/tests/bisca_test.py"],
       "presentation": {
-        "group": "grp1"
+        "group": "grp1",
+        "showReuseMessage":false,
+        "echo":false
       }
     },
     {
       "label": "player_test",
       "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py player_test.py",
+      "command": "C:/Users/\"joao reis\"/.virtualenvs/DiscordBottom-h1DD9b_Q/Scripts/python.exe",
+      "args": ["c:/Users/\"joao reis\"/Documents/projects/Discord/Bots/DiscordBottom/DiscordBottom/tests/player_test.py"],
       "presentation": {
-        "group": "grp1"
+        "group": "grp1",
+        "showReuseMessage":false,
+        "echo":false
       }
     },
     {
       "label": "cards_tests",
-      "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_test.py && py card_enum_test.py && py card_list_test.py",
+      "dependsOrder":"sequence",
+      "dependsOn": [
+        "card_test",
+        "card_enum_test",
+        "card_list_test"
+      ],
+
       "presentation": {
-        "group": "tests",
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
         "panel": "shared"
       }
     },
     {
       "label": "card_games_tests",
-      "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py card_game_test.py && py trick_taking_game_test.py && py bisca_test.py",
+      "dependsOrder":"sequence",
+      "dependsOn": [
+        "card_game_test",
+        "trick_tacking_game_test",
+        "bisca_test"
+      ],
+
       "presentation": {
-        "group": "tests",
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "repository_tests",
-      "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py in_memory_game_repo_test.py",
-      "presentation": {
-        "group": "tests",
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
         "panel": "shared"
       }
     },
     {
       "label": "full_player_tests",
-      "type": "shell",
-      "command": "cd C:\\Users\\\"joao reis\"\\Documents\\projects\\Discord\\Bots\\DiscordBottom\\DiscordBottom\\tests && py player_test.py",
+      "dependsOrder":"sequence",
+      "dependsOn": [
+        "player_test"
+      ],
+
       "presentation": {
-        "group": "tests",
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "repository_tests",
+      "dependsOrder":"sequence",
+      "dependsOn": [
+        "in_memory_game_repo_test"
+      ],
+
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
         "panel": "shared"
       }
     },
     {
       "label": "run_tests",
-
+      "dependsOrder":"parallel",
       "dependsOn": [
         "cards_tests",
         "card_games_tests",

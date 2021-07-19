@@ -9,9 +9,11 @@ class CardGameFactory:
     def __init__(self):
         pass
 
-    def create(self, game_type: CardGameType, players: List[CardPlayer]) -> CardGame:
+    def create(self, game_type: CardGameType, players: List[CardPlayer], challenger_id=None) -> CardGame:
         if game_type == CardGameType.BISCA:
-            return Bisca(players=players)
+            return Bisca(players=players, first_player_id=challenger_id)
 
         if game_type == CardGameType.SUECA:
-            return Sueca(players=players)
+            return Sueca(players=players, first_player_id=challenger_id)
+            
+        return None

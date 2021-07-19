@@ -15,9 +15,9 @@ class TrickTakingGame(CardGame):
     def __init__(self, players: List[CardPlayer], cards_per_player: int, current_suit: Suit = Suit.JOKER,
                  trump_suit: Suit = Suit.JOKER,
                  current_round: int = 1, card_deck: CardDeck = None,
-                 player_order: List[CardPlayer] = None, played_cards: List[PlayedCard] = None, game_state: GameStateEnum = GameStateEnum.CREATED):
+                 player_order: List[CardPlayer] = None, first_player_id=None, played_cards: List[PlayedCard] = None, game_state: GameStateEnum = GameStateEnum.CREATED):
         super().__init__(cards_per_player=cards_per_player, card_deck=card_deck, players=players, game_state=game_state,
-                         player_order=player_order, played_cards=played_cards)
+                         player_order=player_order, first_player_id=first_player_id, played_cards=played_cards)
 
         self.current_suit = current_suit
         self.trump_suit = trump_suit

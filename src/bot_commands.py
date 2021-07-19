@@ -19,6 +19,10 @@ async def test(ctx):
     await ctx.send(f"message info: \n{ctx.message}")
 
 @bot.command()
+async def showrandomtable(ctx):
+    return
+
+@bot.command()
 async def bisca(ctx, members: commands.Greedy[discord.User]):
     author_id = ctx.message.author.id
     invalid_args_msg = validate_game_challenge_args(members=members, game_type=CardGameType.BISCA)

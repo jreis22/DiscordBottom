@@ -1,7 +1,8 @@
 import unittest
 import sys
+from tests_config import TEST_CONFIG
 sys.path.insert(
-    1, '/Users/joao reis/Documents/projects/Discord/Bots/DiscordBottom/DiscordBottom/src')
+    1, TEST_CONFIG['SRC_PATH'])
 from card_game_logic.card_games.card_game import CardGame
 from card_game_logic.player import CardPlayer
 from card_game_logic.cards.card_hand import CardHand
@@ -111,10 +112,10 @@ class CardGameTest(unittest.TestCase):
         self.game.add_played_card(player_key=1, card=PlayingCard(suit=Suit.SPADES, rank=Rank.QUEEN), game_round=2)
         self.game.add_played_card(player_key=2, card=PlayingCard(suit=Suit.CLUBS, rank=Rank.JACK), game_round=2)
 
-        self.assertTrue(self.game.played_cards.__contains__(PlayedCard(player_key=1, card=PlayingCard(suit=Suit.HEARTS, rank=Rank.FOUR), game_round=1)))
-        self.assertTrue(self.game.played_cards.__contains__(PlayedCard(player_key=1, card=PlayingCard(suit=Suit.SPADES, rank=Rank.QUEEN), game_round=2)))
-        self.assertTrue(self.game.played_cards.__contains__(PlayedCard(player_key=2, card=PlayingCard(suit=Suit.DIAMONDS, rank=Rank.TWO), game_round=1)))
-        self.assertFalse(self.game.played_cards.__contains__(PlayedCard(player_key=1, card=PlayingCard(suit=Suit.HEARTS, rank=Rank.FOUR), game_round=2)))
+        self.assertTrue(self.game.played_cards.__contains__(PlayedCard(player_key=1, card=PlayingCard(suit=Suit.HEARTS, rank=Rank.FOUR), game_round=1, order=1)))
+        self.assertTrue(self.game.played_cards.__contains__(PlayedCard(player_key=1, card=PlayingCard(suit=Suit.SPADES, rank=Rank.QUEEN), game_round=2, order=1)))
+        self.assertTrue(self.game.played_cards.__contains__(PlayedCard(player_key=2, card=PlayingCard(suit=Suit.DIAMONDS, rank=Rank.TWO), game_round=1, order=2)))
+        self.assertFalse(self.game.played_cards.__contains__(PlayedCard(player_key=1, card=PlayingCard(suit=Suit.HEARTS, rank=Rank.FOUR), game_round=2, order=2)))
 
     def test_set_all_players_playing(self):
         for player in self.game.players.values():
@@ -136,8 +137,8 @@ class CardGameTest(unittest.TestCase):
 
         result = self.game.get_plays_from_round(1)
         expected = [
-            PlayedCard(player_key=1, card=PlayingCard(suit=Suit.HEARTS, rank=Rank.FOUR), game_round=1),
-            PlayedCard(player_key=2, card=PlayingCard(suit=Suit.DIAMONDS, rank=Rank.TWO), game_round=1),
+            PlayedCard(player_key=1, card=PlayingCard(suit=Suit.HEARTS, rank=Rank.FOUR), game_round=1, order=1),
+            PlayedCard(player_key=2, card=PlayingCard(suit=Suit.DIAMONDS, rank=Rank.TWO), game_round=1, order=2),
         ]
         self.assertEqual(result, expected)
         

@@ -4,7 +4,8 @@ import uuid
 from typing import List, Union
 
 from simple_discord_message import SimpleDiscordMessage
-
+from discord_card_game import DiscordCardGame
+from discord_card_game_in_memory_repo import DiscordCardGameInMemoryRepo
 from card_image_dictionary import CardImageDictionary
 
 from card_game_logic.player import CardPlayer
@@ -14,15 +15,16 @@ from card_game_logic.cards.card_enums import Rank, Suit
 from card_game_logic.cards.card import PlayingCard
 
 from card_game_logic.card_games.card_game import CardGame
+from card_game_logic.card_games.played_card import PlayedCard
 from card_game_logic.card_games.card_game_type import CardGameType
 #from card_game_logic.card_games.card_game_factory import CardGameFactory
 from card_game_logic.card_games.card_game_challenge import CardGameChallenge
 
 from card_game_logic.repositories.in_memory_challenge_repository import InMemoryChallengeRepository
-from card_game_logic.repositories.in_memory_game_repository import InMemoryGameRepository
+#from card_game_logic.repositories.in_memory_game_repository import InMemoryGameRepository
 
 challenge_repo = InMemoryChallengeRepository()
-game_repo = InMemoryGameRepository()
+game_repo = DiscordCardGameInMemoryRepo()
 
 
 def show_random_card() -> PlayingCard:
@@ -75,7 +77,7 @@ def create_card_game_challenge_handler(challenger: discord.User, teams: {}, memb
     embed.set_image(url=get_card_image_url(show_random_card()))
     embed.set_footer(text=str(challenge.id))
     # , icon_url="https://cdn.discordapp.com/emojis/817060615079067718.png?v=1")
-    content = f"(card_games) <challenge>:"
+    content = "(card_games) <challenge>:"
     for member in members:
         content += f" {member.mention}"
 
@@ -98,7 +100,7 @@ def create_new_player(user_id, team=0):
     return CardPlayer(player_id=user_id, team=team)
 
 
-def create_game_from_challenge(challenge):
+def create_game_from_challenge(challenge) -> CardGame:
     return challenge.create_card_game()
 
 
@@ -108,7 +110,7 @@ def get_last_n_challenges(n: int) -> []:
 # handles card games related messages
 
 
-def card_game_reaction_handler(emoji: discord.emoji, message: discord.Message, user: discord.User) -> List[SimpleDiscordMessage]:
+def card_game_reaction_handler(emoji: discord.PartialEmoji, message: discord.Message, user: discord.User) -> List[SimpleDiscordMessage]:
     #    if isinstance(channel, discord.User):
     #        await channel.send("nice dm react")
     #    else:
@@ -118,19 +120,24 @@ def card_game_reaction_handler(emoji: discord.emoji, message: discord.Message, u
 
     if "<challenge>" in message.content:
         return card_game_challenge_reaction_handler(emoji=emoji, message=message, user=user)
+    elif "<card_selection>" in message.content:
+        return card_game_card_selection_handler(emoji=emoji, message=message, user=user)
 
-# handles card games challenges
+######## handles card games challenges
 
 
-def card_game_challenge_reaction_handler(emoji: discord.emoji, message: discord.Message, user: discord.User) -> List[SimpleDiscordMessage]:
+def card_game_challenge_reaction_handler(emoji: discord.PartialEmoji, message: discord.Message, user: discord.User) -> List[SimpleDiscordMessage]:
     challenge_id = get_challlenge_id_from_message(message=message)
+    if not challenge_repo.has(challenge_id=challenge_id):
+        content = f"{user.mention}, challenge can't be found in the database"
+        return [SimpleDiscordMessage(content=content, channel=message.channel)]
+
+    #challenge validation
     challenge = challenge_repo.get_by_id(challenge_id)
     content = None
     message_list = []
-    if challenge is None:
-        content = "Challenge can't be found in the database"
-
-    elif not challenge.has_player(user.id):
+    
+    if not challenge.has_player(user.id):
         content = f"{user.mention} you are not a part of that challenge/game"
 
     elif challenge.is_accepted():
@@ -138,24 +145,22 @@ def card_game_challenge_reaction_handler(emoji: discord.emoji, message: discord.
 
     elif challenge.is_cancelled():
         content = "Challenge was already denied, can't change answer now"
-
     elif str(emoji) == "✅":
         challenge.accept_challenge(user.id)
         challenge_repo.update(challenge_id=challenge.id, challenge=challenge)
         content = f"{user.mention} Accepted the challenge"
 
         if challenge.is_accepted():
-            game = create_card_game_handler(challenge=challenge)
+            game = create_card_game_handler(challenge=challenge, messageable=message.channel).get_game()
 
             for player_id in game.players:
                 cards = game.players[player_id].show_hand()
-                message_list.append(SimpleDiscordMessage(
-                    content=player_cards_dm(cards=cards), channel=player_id))
+                message_list.append(player_cards_dm(user=player_id, cards=cards))
 
-            content += f"\nChallenge was accepted, game was created"
-            first_player = game.get_first_player()
-            message_list.append(card_select_dm(player_id=first_player.player_id, game=game,
-                                               cards=get_player_valid_cards(player_id=first_player.player_id, card_game=game)))
+            content += "\nChallenge was accepted, game was created"
+            next_player = game.get_next_player()
+            message_list.append(card_select_dm(player_id=next_player.player_id, game=game,
+                                               cards=get_player_valid_cards(player_id=next_player.player_id, card_game=game)))
 
     elif str(emoji) == "❌":
         challenge.quit_challenge(user.id)
@@ -172,19 +177,103 @@ def card_game_challenge_reaction_handler(emoji: discord.emoji, message: discord.
     return message_list
 
 # filters message content/embed to obtain challenge id
-
-
 def get_challlenge_id_from_message(message: discord.Message):
     embed = message.embeds[0]
     return uuid.UUID(embed.to_dict()['footer']['text'])
 
+##### handles card game reactions
+def card_game_card_selection_handler(emoji: discord.PartialEmoji, message: discord.Message, user: discord.User) -> List[SimpleDiscordMessage]:
+    #emoji validation (done in the beginning to save time on wrong emoji reacts)
+    if emoji.id is None:
+        return None
+    elif not CardImageDictionary.is_card_emoji(emoji):
+        return None
+
+    #check if game is in the database (all validations are done from the game, so it has to be validated right away)
+    game_id = get_game_id_from_message(message=message)
+
+    if not game_repo.has(game_id=game_id):
+        content = "Game can't be found in the database"
+        return [SimpleDiscordMessage(content=content, channel=user)]
+
+    discord_game = game_repo.get_by_id(game_id)
+    #game validation
+    game = discord_game.get_game()
+    content = None
+    message_list = []
+    channel = user
+    if not game.has_player(user.id):
+        content = f"{user.mention} you are not a part of that game"
+
+    elif game.is_game_over():
+        content = "Game has already ended"
+        simple_message = SimpleDiscordMessage(
+            content=content, channel=channel)
+        message_list.append(simple_message)
+
+    # elif game.is_game_over():
+    #     content = "Game has already ended"
+    #     simple_message = SimpleDiscordMessage(
+    #         content=content, channel=channel)
+    #     message_list.append(simple_message)
+    else:
+        #try:
+        card = CardImageDictionary.get_card_by_id(emoji.id)
+        discord_game.game.play_card(player_key=user.id, card=card)
+        game_repo.update(game_id=discord_game.id, game=discord_game)
+        message_list.append(get_card_played_server_message(user=user, card=card, discord_game=discord_game))
+        #except Exception as e:
+            #message_list.append(SimpleDiscordMessage(content=str(e), channel=user))
+
+
+    return message_list
+
+def get_card_played_server_message(user: discord.User, card:PlayingCard,discord_game: DiscordCardGame) -> SimpleDiscordMessage:
+    embed = get_table_embed(game=discord_game.game)
+    message = SimpleDiscordMessage(content=f"{user.mention} has played {card}", embed=embed, channel=discord_game.channel)
+    return message
+
+def get_next_player_message(discord_game: DiscordCardGame) -> SimpleDiscordMessage:
+    if discord_game.game.is_game_over():
+        return get_game_over_message(discord_game=discord_game)
+
+    next_player = discord_game.game.get_next_player()
+    message = card_select_dm(player_id=next_player.player_id, game=discord_game.game,
+                                cards=get_player_valid_cards(player_id=next_player.player_id, card_game=discord_game.game))
+    return message
+
+def get_game_over_message(discord_game: DiscordCardGame):
+    content = "Game has ended"
+
+    winning_team = discord_game.game.get_winning_players()
+
+    embed = discord.Embed(title=f"Game Over")
+    embed.add_field(name="Winners:", value=get_winners_string(winning_team))
+    embed.set_footer(text=str(discord_game.game.get_id()))
+
+    message = SimpleDiscordMessage(content=content, embed=embed, reactions=["🔄", "↪️"], channel=discord_game.channel)
+
+    return message
+
+def get_winners_string(winners_ids: list) -> str:
+    string =""
+    for id in winners_ids:
+        string += f"<@{id}> "
+
+def get_game_id_from_message(message: discord.Message):
+    embed = message.embeds[0]
+    return uuid.UUID(embed.to_dict()['footer']['text'])
+
+def get_game_round_from_message(message: discord.Message) -> int:
+    embed = message.embeds[0]
+    return int(embed.description.split()[1])
+
 # creates card game and saves it in repo
-
-
-def create_card_game_handler(challenge: CardGameChallenge) -> CardGame:
+def create_card_game_handler(challenge: CardGameChallenge, messageable: discord.abc.Messageable) -> DiscordCardGame:
     card_game = create_game_from_challenge(challenge)
-    game_repo.insert(card_game)
-    return card_game
+    discord_game = DiscordCardGame(game=card_game, channel=messageable)
+    game_repo.insert(discord_game)
+    return discord_game
 
 
 def cards_to_emoji(cards: List[PlayingCard]) -> str:
@@ -204,13 +293,16 @@ def cards_to_emoji_list(cards: List[PlayingCard]) -> List[str]:
     return cardl
 
 
-def player_cards_dm(cards) -> str:
-    return f"(card_games) <card_hand>:\n{cards_to_emoji(cards)}"
+def player_cards_dm(user, cards: List[PlayingCard]) -> SimpleDiscordMessage:
+    content = "(card_games) <card_hand>"
+    embed = discord.Embed(title="Your cards", description=cards_to_emoji(cards))
+    message = SimpleDiscordMessage(content=content, embed=embed, channel=user)
+    return message
 
 
-def card_select_dm(cards: PlayingCard, player_id, game: CardGame):
-    content = "(card_games) <card_selection> Select the card you wish to play"
-    embed = discord.Embed(title="Pick a card")
+def card_select_dm(cards: List[PlayingCard], player_id, game: CardGame):
+    content = "(card_games) <card_selection>"
+    embed = discord.Embed(title="Pick a card", description=f"Round: {game.current_round}")
     embed.set_footer(text=str(game.get_id()))
     return SimpleDiscordMessage(content=content, embed=embed, reactions=cards_to_emoji_list(cards), channel=player_id)
 
@@ -222,3 +314,45 @@ def get_player_valid_cards(player_id, card_game: Union[uuid.UUID, CardGame]) -> 
         game = game_repo.get_by_id(card_game)
 
     return game.get_player_valid_cards(player_key=player_id)
+
+####### UNFINISHED CAUSE IT SUCKS (also you cant tag users in embeds)
+def get_table_embed(game: CardGame) -> discord.Embed:
+    n_players = len(game.players)
+    plays = game.get_plays_from_current_round()
+    n_plays = len(plays)
+
+    embed = discord.Embed(title="Player table")
+    plays_added = 0
+    while plays_added < n_players:
+        if plays_added == 0:
+            if n_players == 4 or n_players % 2 != 0:
+                embed.add_field(name=f"<@{plays[0].player_key}>", value=str(plays[0].card))
+            else:
+                if n_plays > 1:
+                    card2 = plays[1].card
+                    player2_id = plays[1].player_key
+                else:
+                    card2 = ''
+                    player2_id = game.get_next_player()
+
+                embed.add_field(name=f"<@{plays[0].player_key}>", value=str(plays[0].card), inline=True)
+                #embed.add_field(name=f"<@{player2_id}>", value=str(card2), inline=True)
+                plays_added += 1
+            plays_added += 1
+        else:
+            plays_added += 1
+
+    return embed
+
+def get_table_message_string(game: CardGame) -> str:
+    n_players = len(game.players)
+    plays = game.get_plays_from_current_round()
+    n_plays = len(plays)
+
+    plays_added = 0
+    message = ""
+
+    while plays_added < n_players:
+        if plays_added == 0:
+            if n_players == 4 or n_players % 2 != 0:
+                message += f""

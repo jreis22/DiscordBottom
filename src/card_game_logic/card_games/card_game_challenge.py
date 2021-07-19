@@ -73,12 +73,9 @@ class CardGameChallenge:
         if self.is_accepted():
             factory = CardGameFactory()
             players = list(self.players.values())
-            game = factory.create(game_type=self.game_type, players=players)
+            game = factory.create(game_type=self.game_type, players=players, challenger_id=self.challenger_id)
             game.order_players()
-            count = 0
-            while game.get_first_player().player_id != self.challenger_id and count <= len(players):
-                game.rotate_player_order()
-                count += 1
+            
             game.start_game()
             return game
         else:

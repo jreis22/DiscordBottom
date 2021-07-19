@@ -11,13 +11,13 @@ class Sueca(TrickTakingGame):
     def __init__(self, players: dict, current_suit: Suit = Suit.JOKER,
                  trump_suit: Suit = Suit.JOKER,
                  current_round: int = 1, card_deck: CardDeck = None,
-                 player_order: [] = None, played_cards: [] = None, game_state: GameStateEnum = GameStateEnum.CREATED):
+                 player_order: [] = None, first_player_id=None, played_cards: [] = None, game_state: GameStateEnum = GameStateEnum.CREATED):
 
         if len(players) != 4:
             raise Exception("Must have 2 players to start game")
 
         super().__init__(cards_per_player=10, card_deck=card_deck, current_round=current_round, players=players, game_state=game_state,
-                         player_order=player_order, played_cards=played_cards)
+                         player_order=player_order, first_player_id=first_player_id, played_cards=played_cards)
 
         self.current_suit = current_suit
         self.trump_suit = trump_suit

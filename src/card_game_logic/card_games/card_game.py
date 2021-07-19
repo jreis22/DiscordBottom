@@ -15,7 +15,7 @@ class CardGame():
     def __init__(self, cards_per_player: int, current_round: int = 1, game_id: uuid.UUID = None, players: List[CardPlayer] = None,
                  card_deck: CardDeck = None,
                  game_state: GameStateEnum = GameStateEnum.CREATED,
-                 player_order: list = None, played_cards: List[PlayedCard] = None):
+                 player_order: list = None, first_player_id = None, played_cards: List[PlayedCard] = None):
         self.set_players(players)
         self.set_card_deck(card_deck)
         self.game_state = game_state
@@ -24,6 +24,7 @@ class CardGame():
         self.set_played_cards(played_cards)
         self._set_id_(game_id)
         self.current_round = current_round
+        self.first_player_id = first_player_id
 
     # setters & getters
 
@@ -47,6 +48,9 @@ class CardGame():
         for player in self.players.values():
             player.set_state_playing()
 
+    def has_player(self, player_id):
+        return player_id in self.players
+
     # different games might implement different decks
     def set_card_deck(self, card_deck: CardDeck):
         if card_deck is None:
@@ -65,7 +69,7 @@ class CardGame():
             self.player_order = player_order
 
     #returns first player in queue
-    def get_first_player(self):
+    def get_next_player(self):
         return self.players[self.player_order[0]]
 
     def set_played_cards(self, played_cards: List[PlayedCard]):
@@ -75,19 +79,30 @@ class CardGame():
             self.played_cards = played_cards
 
     def add_played_card(self, player_key, card: PlayingCard, game_round: int):
+        order = self.number_of_cards_in_round(game_round=game_round)
         self.played_cards.append(PlayedCard(
-            player_key=player_key, card=card, game_round=game_round))
+            player_key=player_key, card=card, game_round=game_round, order=order))
 
     def get_plays_from_round(self, current_round: int) -> List[PlayedCard]:
-        if self.current_round < current_round:
-            raise Exception(f"Round wasn't reached yet")
-        
         plays_from_round = []
         for played_card in self.played_cards:
             if played_card.round == current_round:
-                plays_from_round.append(played_card)
-
+                plays_from_round.insert(played_card.order, played_card)
         return plays_from_round
+
+    def get_plays_from_current_round(self) -> List[PlayedCard]:
+        return self.get_plays_from_round(current_round=self.current_round)
+
+    def number_of_cards_in_round(self, game_round: int) -> int:
+        if self.current_round < game_round:
+            return 0
+
+        plays_count = 0
+        for played_card in self.played_cards:
+            if played_card.round == game_round:
+                plays_count += 1
+
+        return plays_count
 
     def get_player_cards(self, player_key):
         if not self.players.__contains__(player_key):
@@ -111,6 +126,9 @@ class CardGame():
     def is_round_start(self) -> bool:
         return self.game_state == GameStateEnum.ROUND_START or self.game_state == GameStateEnum.STARTED
     
+    def is_players_turn(self, player_id):
+        return self.player_order[0] == player_id
+
     def set_state_round_start(self):
         self.game_state = GameStateEnum.ROUND_START
 
@@ -265,6 +283,37 @@ class CardGame():
                     player_order.append(player)
             self.player_order = player_order
 
+            if self.first_player_id is None:
+                self.first_player_id = player_order[0]
+            else:
+                count = 0
+                while self.player_order[0] != self.first_player_id  and count < len(self.player_order):
+                    self.rotate_player_order()
+                    count += 1
+
+    def get_teams_points_dict(self) -> dict:
+        teams = {}
+        for player in self.players:
+            team = self.players[player].team
+            if not team in teams:
+                teams[team] = 0
+            teams[team] += self.players[player].points
+        return teams
+
+    def get_winning_players(self) -> List[CardPlayer]:
+        teams = self.get_teams_points_dict()
+        winning_team = None
+        for team in teams:
+            if not winning_team is None:
+                if teams[team] > teams[winning_team]:
+                    winning_team = team
+            else:
+                winning_team = team
+        winning_players = []
+        for player in self.players:
+            if self.players[player].team == winning_team:
+                winning_players.append(player)
+        
     # default validation for player in method play_card method (probably doesnt need to be overriden)
     def is_card_valid(self, player: CardPlayer, card: PlayingCard) -> bool:
         return self.is_card_suit_valid(player=player, card=card) and self.is_card_rank_valid(player=player, card=card)
