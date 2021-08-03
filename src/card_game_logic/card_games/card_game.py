@@ -175,9 +175,6 @@ class CardGame():
     def deal_n_cards_to_player(self, player_key, nCards: int):
         hand = self.card_deck.deal_n_cards(nCards)
         self.players[player_key].deal_cards(hand)
-
-    def player_exists(self, player_key) -> bool:
-        return player_key in self.players
     
     #probably doesnt need to be overriden unless you need to change validations
     def play_card(self, player_key, card):
