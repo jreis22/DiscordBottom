@@ -36,7 +36,9 @@ class CardGame():
             self.game_id = uuid.uuid4()
         else:
             self.game_id = game_id
-            
+    def get_all_players_ids(self):
+        return self.players.keys()
+
     def set_players(self, players: List[CardPlayer]):
         self.players = {}
         if not players is None:
