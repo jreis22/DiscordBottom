@@ -54,7 +54,7 @@ def get_card_emoji(card: PlayingCard) -> str:
 # users is a dictionary in which key is the user.id and the value is their team
 
 
-def create_card_game_challenge_handler(challenger: discord.User, teams: {}, members: List[discord.User], game_type: CardGameType) -> SimpleDiscordMessage:
+def create_card_game_challenge_handler(challenger: discord.User, teams: dict, members: List[discord.User], game_type: CardGameType) -> SimpleDiscordMessage:
 
     players = []
     try:
@@ -88,7 +88,7 @@ def create_card_game_challenge_handler(challenger: discord.User, teams: {}, memb
     return message
 
 
-def validate_users_for_challenge(users: {}):
+def validate_users_for_challenge(users: dict):
     users_len = len(users)
     ids = list(users.keys())
     for i in range(users_len - 1):
@@ -104,7 +104,7 @@ def create_game_from_challenge(challenge) -> CardGame:
     return challenge.create_card_game()
 
 
-def get_last_n_challenges(n: int) -> []:
+def get_last_n_challenges(n: int) -> list:
     return challenge_repo.get_last_n_entries(n)
 
 # handles card games related messages
