@@ -53,7 +53,7 @@ def get_card_emoji(card: PlayingCard) -> str:
 
 # users is a dictionary in which key is the user.id and the value is their team
 
-
+#teams dict format: {user_id: team}
 def create_card_game_challenge_handler(challenger: discord.User, teams: dict, members: List[discord.User], game_type: CardGameType) -> SimpleDiscordMessage:
 
     players = []
