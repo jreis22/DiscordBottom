@@ -8,12 +8,25 @@ from card_game_logic.cards.card_enums import Rank, Suit
 
 
 class CardPlayer:
-    def __init__(self, player_id, team: int = 0, card_hand: CardHand = None, player_state: PlayerStateEnum = PlayerStateEnum.PENDING, points: int = 0):
+    def __init__(self, player_id, player_name: str = None, team: int = 0, card_hand: CardHand = None, player_state: PlayerStateEnum = PlayerStateEnum.PENDING, points: int = 0):
         self.player_id = player_id
+        self.set_player_name(player_name)
         self.set_card_hand(card_hand)
         self.player_state = player_state
         self.points = points
         self.team = team
+
+    def get_player_name(self) -> str:
+        return self.player_name
+
+    def set_player_name(self, player_name: str):
+        if player_name is None:
+            if self.player_id is None:
+                self.player_name = ""
+            else:
+                self.player_name = str(self.player_id)
+        else:
+            self.player_name = player_name
 
     def set_card_hand(self, new_card_hand: CardHand):
         if new_card_hand is None:
