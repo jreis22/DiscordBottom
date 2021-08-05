@@ -64,6 +64,9 @@ class CardGame():
     def get_deck_format(self) -> DeckFormat:
         return DeckFormat.FIFTY_TWO
 
+    def get_player_order(self): 
+        return self.player_order.copy()
+
     def set_player_order(self, player_order: list):
         if player_order is None:
             self.player_order = []
@@ -90,6 +93,8 @@ class CardGame():
         for played_card in self.played_cards:
             if played_card.round == current_round:
                 plays_from_round.insert(played_card.order, played_card)
+        
+        plays_from_round.sort(key=lambda x: x.order)
         return plays_from_round
 
     def get_plays_from_current_round(self) -> List[PlayedCard]:
