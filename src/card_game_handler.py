@@ -317,33 +317,63 @@ def get_player_valid_cards(player_id, card_game: Union[uuid.UUID, CardGame]) -> 
 
 ####### UNFINISHED CAUSE IT SUCKS (also you cant tag users in embeds)
 def get_table_embed(game: CardGame) -> discord.Embed:
+    #used so that the first player in the table is always the same
+    top_player_id = game.first_player_id
+
+    #get the players by order and the plays made
+    player_order = game.get_player_order()
     n_players = len(game.players)
     plays = game.get_plays_from_current_round()
     n_plays = len(plays)
+    first_player_id = plays[0].player_key
+    #get first player index
+    top_player_index = 0
+    i=0
+    for player_id in player_order:
+        if player_id == top_player_id:
+            top_player_index = i
+            break
+        #checks if player order is the same as the order that the round was played
+        if player_id == first_player_id:
+            offset = i
+        i += 1
 
+    if offset != 0:
+        player_order = player_order[offset:] + player_order[:offset]
+        
     embed = discord.Embed(title="Player table")
-    plays_added = 0
-    while plays_added < n_players:
-        if plays_added == 0:
-            if n_players == 4 or n_players % 2 != 0:
-                embed.add_field(name=f"{game.get_player_name(plays[0].player_key)}", value=str(plays[0].card))
-            else:
-                if n_plays > 1:
-                    card2 = plays[1].card
-                    player2_id = plays[1].player_key
-                else:
-                    card2 = ''
-                    player2_id = game.get_next_player()
-
-                embed.add_field(name=f"<@{plays[0].player_key}>", value=str(plays[0].card), inline=True)
-                #embed.add_field(name=f"<@{player2_id}>", value=str(card2), inline=True)
-                plays_added += 1
-            plays_added += 1
+    players_added = 0
+    #number used to know if there is plays still to be added
+    plays_left = n_plays
+    while players_added < n_players:
+        aux = top_player_index + players_added
+        player_index = aux if aux < n_players else aux - n_players 
+        if player_index < n_plays:
+            card = n_plays[player_index].card
+            cardstr = CardImageDictionary.get_card_emoji(rank=card.rank, suit=card.suit)
+        if players_added == 0:
+            if (n_players % 2) != 0: 
+                embed.add_field(name=f"{game.get_player_name(player_order[i])}", value=cardstr) acabar
         else:
-            plays_added += 1
+            players_added += 1
 
     return embed
 
+def add_single_player_line_to_embed(game: CardGame, player_id, embed: discord.Embed, played_card: str):
+    embed.add_field(name=f"{game.get_player_name(played_card.player_key)}", value=played_card)
+    return
+
+def add_two_player_line_to_embed(game: CardGame, embed: discord.Embed, played_cards: List[PlayedCard]):
+    embed.add_field(name=f"{game.get_player_name(played_cards[0].player_key)}", value=str(played_cards[0].card))
+    embed.add_field(name=f"        ", value="        ")
+    embed.add_field(name=f"{game.get_player_name(played_cards[1].player_key)}", value=str(played_cards[1].card))
+
+def add_two_player_close_line_to_embed(game: CardGame, embed: discord.Embed, played_cards: List[PlayedCard]):
+    embed.add_field(name=f"{game.get_player_name(played_cards[0].player_key)}", value=str(played_cards[0].card))
+    embed.add_field(name=f"     ", value="     ")
+    embed.add_field(name=f"{game.get_player_name(played_cards[1].player_key)}", value=str(played_cards[1].card))
+
+#useless
 def get_table_message_string(game: CardGame) -> str:
     n_players = len(game.players)
     plays = game.get_plays_from_current_round()
