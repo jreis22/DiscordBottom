@@ -106,6 +106,11 @@ class CardGame():
 
         return plays_count
 
+    def get_player_name(self, player_key):
+        if not self.players.__contains__(player_key):
+            raise Exception("game doens't contain player")
+        return self.players[player_key].get_player_name()
+        
     def get_player_cards(self, player_key):
         if not self.players.__contains__(player_key):
             raise Exception("game doens't contain player")
