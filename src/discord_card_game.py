@@ -8,7 +8,7 @@ class DiscordCardGame:
         self.set_channel(channel=channel)
 
     def get_id(self):
-        return self.id
+        return self.game.get_id()
 
     def set_game(self, game: CardGame):
         self.game = game
