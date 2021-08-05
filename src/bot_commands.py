@@ -22,15 +22,35 @@ async def test(ctx):
 async def showrandomtable(ctx):
     return
 
+async def get_teams_dictionary(author, members: List[discord.User], number_of_teams):
+    team = 1
+    teams_dict = {author.id: {"TEAM": team, "NAME": author.name}}
+    players_per_team = (len(members)+1)/number_of_teams
+    #counts the players in a team until the team is full, then it resets for the next team
+    players_in_team=1
+    
+    for member in members:
+        if players_in_team >= players_per_team:
+            team+= 1
+            players_in_team = 0
+
+        teams_dict[member.id] = {"TEAM": team, "NAME": member.name}
+
+        players_in_team +=1
+
+    return teams_dict
+
 @bot.command()
 async def bisca(ctx, members: commands.Greedy[discord.User]):
-    author_id = ctx.message.author.id
+    author= ctx.message.author
     invalid_args_msg = validate_game_challenge_args(members=members, game_type=CardGameType.BISCA)
     if not invalid_args_msg is None:
         await send_simple_discord_message(channel=ctx, message=invalid_args_msg)
         return
         
-    teams_dict = {author_id: 1, members[0].id: 2}
+    #teams_dict = {author_id: 1, members[0].id: 2}
+    teams_dict = await get_teams_dictionary(author = author, members=members, number_of_teams=2)
+
     if len(teams_dict) != 2:
         await ctx.send(f"{ctx.message.author.mention} repeated users in challenge....probably")
         return
