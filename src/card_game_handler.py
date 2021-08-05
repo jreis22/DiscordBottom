@@ -63,7 +63,7 @@ def create_card_game_challenge_handler(challenger: discord.User, teams: dict, me
         return SimpleDiscordMessage(str(err))
 
     for user_id in teams:
-        player = create_new_player(user_id=user_id, team=teams[user_id])
+        player = create_new_player(user_id=user_id, team=teams[user_id]["TEAM"], player_name=teams[user_id]["NAME"])
         players.append(player)
 
     challenge = CardGameChallenge(
@@ -96,8 +96,8 @@ def validate_users_for_challenge(users: dict):
             raise IOError(f"User <@{ids[i]}> repeated")
 
 
-def create_new_player(user_id, team=0):
-    return CardPlayer(player_id=user_id, team=team)
+def create_new_player(user_id, player_name: str, team=0):
+    return CardPlayer(player_id=user_id, team=team, player_name=player_name)
 
 
 def create_game_from_challenge(challenge) -> CardGame:
@@ -220,7 +220,7 @@ def card_game_card_selection_handler(emoji: discord.PartialEmoji, message: disco
         #try:
         card = CardImageDictionary.get_card_by_id(emoji.id)
         discord_game.game.play_card(player_key=user.id, card=card)
-        game_repo.update(game_id=discord_game.id, game=discord_game)
+        game_repo.update(game_id=discord_game.get_id(), game=discord_game)
         message_list.append(get_card_played_server_message(user=user, card=card, discord_game=discord_game))
         #except Exception as e:
             #message_list.append(SimpleDiscordMessage(content=str(e), channel=user))
@@ -326,7 +326,7 @@ def get_table_embed(game: CardGame) -> discord.Embed:
     while plays_added < n_players:
         if plays_added == 0:
             if n_players == 4 or n_players % 2 != 0:
-                embed.add_field(name=f"<@{plays[0].player_key}>", value=str(plays[0].card))
+                embed.add_field(name=f"{game.get_player_name(plays[0].player_key)}", value=str(plays[0].card))
             else:
                 if n_plays > 1:
                     card2 = plays[1].card
