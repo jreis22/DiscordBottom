@@ -1,4 +1,5 @@
 import numpy as np
+from math import ceil
 import discord
 import uuid
 from typing import List, Union
@@ -325,6 +326,7 @@ def get_table_embed(game: CardGame) -> discord.Embed:
     n_players = len(game.players)
     plays = game.get_plays_from_current_round()
     n_plays = len(plays)
+    n_players_is_odd = True if (n_players % 2) != 0 else False
     first_player_id = plays[0].player_key
     #get first player index
     top_player_index = 0
@@ -344,34 +346,47 @@ def get_table_embed(game: CardGame) -> discord.Embed:
     embed = discord.Embed(title="Player table")
     players_added = 0
     #number used to know if there is plays still to be added
-    plays_left = n_plays
     while players_added < n_players:
-        aux = top_player_index + players_added
+        aux = top_player_index + ceil(players_added/2)
         player_index = aux if aux < n_players else aux - n_players 
-        if player_index < n_plays:
-            card = n_plays[player_index].card
-            cardstr = CardImageDictionary.get_card_emoji(rank=card.rank, suit=card.suit)
+
+        #gets the info of at least 1 player
+        card = n_plays[player_index].card if player_index < n_plays else None
+
         if players_added == 0:
-            if (n_players % 2) != 0: 
-                embed.add_field(name=f"{game.get_player_name(player_order[i])}", value=cardstr) acabar
+            if n_players_is_odd: 
+                add_single_player_line_to_embed(player_name = game.get_player_name(player_order[player_index], card), embed=embed, played_card=card)
+            else:
+                player2_index_aux = top_player_index - players_added - 1
+                player2_index = player2_index_aux if player2_index_aux > 0 else player2_index_aux + n_players
+                card2 = n_plays[player2_index].card if player2_index < n_plays else None
         else:
-            players_added += 1
+                player2_index_aux = top_player_index - players_added - (1* (not n_players_is_odd))
+                player2_index = player2_index_aux if player2_index_aux > 0 else player2_index_aux + n_players
+                card2 = n_plays[player2_index].card if player2_index < n_plays else None
+
+        players_added += 1
 
     return embed
 
-def add_single_player_line_to_embed(game: CardGame, player_id, embed: discord.Embed, played_card: str):
-    embed.add_field(name=f"{game.get_player_name(played_card.player_key)}", value=played_card)
+def add_single_player_line_to_embed(player_name, embed: discord.Embed, played_card: PlayedCard):
+    cardstr = CardImageDictionary.get_card_emoji(rank=played_card.card.rank, suit=played_card.card.suit) if not played_card is None else " "
+    embed.add_field(name=f"{player_name}", value=cardstr)
     return
 
-def add_two_player_line_to_embed(game: CardGame, embed: discord.Embed, played_cards: List[PlayedCard]):
-    embed.add_field(name=f"{game.get_player_name(played_cards[0].player_key)}", value=str(played_cards[0].card))
+def add_two_player_line_to_embed(player1name, player2name, embed: discord.Embed, played_card1: PlayedCard, played_card2: PlayedCard):
+    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else " "
+    embed.add_field(name=f"{player1name}", value=card1str)
     embed.add_field(name=f"        ", value="        ")
-    embed.add_field(name=f"{game.get_player_name(played_cards[1].player_key)}", value=str(played_cards[1].card))
+    card2str = CardImageDictionary.get_card_emoji(rank=played_card2.card.rank, suit=played_card2.card.suit) if not played_card2 is None else " "
+    embed.add_field(name=f"{player2name}", value=card2str)
 
-def add_two_player_close_line_to_embed(game: CardGame, embed: discord.Embed, played_cards: List[PlayedCard]):
-    embed.add_field(name=f"{game.get_player_name(played_cards[0].player_key)}", value=str(played_cards[0].card))
+def add_two_player_close_line_to_embed(player1name, player2name, embed: discord.Embed, played_card1: PlayedCard, played_card2: PlayedCard):
+    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else " "
+    embed.add_field(name=f"{player1name}", value=card1str)
     embed.add_field(name=f"     ", value="     ")
-    embed.add_field(name=f"{game.get_player_name(played_cards[1].player_key)}", value=str(played_cards[1].card))
+    card2str = CardImageDictionary.get_card_emoji(rank=played_card2.card.rank, suit=played_card2.card.suit) if not played_card2 is None else " "
+    embed.add_field(name=f"{player2name}", value=card2str)
 
 #useless
 def get_table_message_string(game: CardGame) -> str:
