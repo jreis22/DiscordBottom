@@ -331,10 +331,11 @@ def get_table_embed(game: CardGame) -> discord.Embed:
     #get first player index
     top_player_index = 0
     i=0
+    offset = 0
     for player_id in player_order:
         if player_id == top_player_id:
             top_player_index = i
-            break
+            
         #checks if player order is the same as the order that the round was played
         if player_id == first_player_id:
             offset = i
@@ -347,23 +348,31 @@ def get_table_embed(game: CardGame) -> discord.Embed:
     players_added = 0
     #number used to know if there is plays still to be added
     while players_added < n_players:
-        aux = top_player_index + ceil(players_added/2)
+        player_offset = (players_added >> 1) + (1 * n_players_is_odd)
+        aux = top_player_index + player_offset
         player_index = aux if aux < n_players else aux - n_players 
-
         #gets the info of at least 1 player
-        card = n_plays[player_index].card if player_index < n_plays else None
-
-        if players_added == 0:
-            if n_players_is_odd: 
-                add_single_player_line_to_embed(player_name = game.get_player_name(player_order[player_index], card), embed=embed, played_card=card)
-            else:
-                player2_index_aux = top_player_index - players_added - 1
-                player2_index = player2_index_aux if player2_index_aux > 0 else player2_index_aux + n_players
-                card2 = n_plays[player2_index].card if player2_index < n_plays else None
+        player_name = game.get_player_name(player_order[player_index])
+        card = plays[player_index].card if player_index < n_plays else None
+        if (n_players_is_odd and players_added == 0) or players_added == n_players - 1:
+            add_single_player_line_to_embed(player_name = player_name, embed=embed, played_card=card)
         else:
-                player2_index_aux = top_player_index - players_added - (1* (not n_players_is_odd))
-                player2_index = player2_index_aux if player2_index_aux > 0 else player2_index_aux + n_players
-                card2 = n_plays[player2_index].card if player2_index < n_plays else None
+            
+            player2_index_aux = top_player_index - players_added - (1 * (not n_players_is_odd))
+            player2_index = player2_index_aux if player2_index_aux >= 0 else player2_index_aux + n_players
+
+            player2name = game.get_player_name(player_order[player2_index])
+            card2 = plays[player2_index].card if player2_index < n_plays else None
+
+            players_added += 1
+            #adds a shorter line if its the last line or if its the first line in a even player game
+            if (n_players - players_added) == 2 or players_added == 0: 
+                add_two_player_close_line_to_embed(player1name = player_name, player2name = player2name 
+                , embed=embed , played_card1=card , played_card2=card2)
+            else:
+                add_two_player_line_to_embed(player1name = player_name, player2name = player2name 
+                , embed=embed , played_card1=card , played_card2=card2)
+            
 
         players_added += 1
 
