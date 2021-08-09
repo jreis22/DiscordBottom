@@ -15,7 +15,7 @@ class CardGame():
     def __init__(self, cards_per_player: int, current_round: int = 1, game_id: uuid.UUID = None, players: List[CardPlayer] = None,
                  card_deck: CardDeck = None,
                  game_state: GameStateEnum = GameStateEnum.CREATED,
-                 player_order: list = None, first_player_id = None, played_cards: List[PlayedCard] = None):
+                 player_order: list = None, first_player_id = None, played_cards: List[PlayedCard] = None, game_winners = None):
         self.set_players(players)
         self.set_card_deck(card_deck)
         self.game_state = game_state
@@ -24,7 +24,8 @@ class CardGame():
         self.set_played_cards(played_cards)
         self._set_id_(game_id)
         self.current_round = current_round
-        self.first_player_id = first_player_id
+        self.first_player_id = first_player_id,
+        self.game_winners = game_winners
 
     # setters & getters
 
@@ -99,6 +100,17 @@ class CardGame():
 
     def get_plays_from_current_round(self) -> List[PlayedCard]:
         return self.get_plays_from_round(current_round=self.current_round)
+
+    def get_plays_from_previous_round(self) -> List[PlayedCard]:
+        return self.get_plays_from_round(current_round=self.current_round-1)
+
+    #needed since the round ends automatically (so it automatically either returns the current round , or the last round if it just ended)
+    def get_plays_from_last_played_round(self) -> List[PlayedCard]:
+        if self.is_round_start() and len(self.played_cards) > 0:
+            return self.get_plays_from_previous_round()
+        else:
+            return self.get_plays_from_current_round()
+
 
     def number_of_cards_in_round(self, game_round: int) -> int:
         if self.current_round < game_round:
@@ -250,6 +262,7 @@ class CardGame():
         
         if self.can_game_end():
             self.game_state = GameStateEnum.GAME_END
+            self.set_game_winners()
             return True
         return False
 
@@ -351,6 +364,21 @@ class CardGame():
     def get_round_winner(self, current_round) -> PlayedCard:
         raise NotImplementedError(
             "Implement 'get_round_winner' from class 'card_game'")
+
+    def get_game_winners(self) -> list:
+        return self.game_winners
+
+    #override to change winning criteria
+    def set_game_winners(self):
+        winners = []
+        highest_score = 0
+        for player in self.players:
+            points = player.current_points()
+            if points > highest_score:
+                highest_score = points
+                winners = [player.player_id]
+            elif points == highest_score:
+                winners.append(player.player_id)
 
     def get_round_points(self, current_round) -> int:
         raise NotImplementedError(
