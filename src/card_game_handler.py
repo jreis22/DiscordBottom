@@ -152,16 +152,12 @@ def card_game_challenge_reaction_handler(emoji: discord.PartialEmoji, message: d
         content = f"{user.mention} Accepted the challenge"
 
         if challenge.is_accepted():
-            game = create_card_game_handler(challenge=challenge, messageable=message.channel).get_game()
+            discord_game = create_card_game_handler(challenge=challenge, messageable=message.channel)
 
-            for player_id in game.players:
-                cards = game.players[player_id].show_hand()
-                message_list.append(player_cards_dm(user=player_id, cards=cards))
+            message_list += get_all_players_card_dm(game=discord_game.get_game())
 
             content += "\nChallenge was accepted, game was created"
-            next_player = game.get_next_player()
-            message_list.append(card_select_dm(player_id=next_player.player_id, game=game,
-                                               cards=get_player_valid_cards(player_id=next_player.player_id, card_game=game)))
+            message_list.append(get_next_player_message(discord_game=discord_game))
 
     elif str(emoji) == "❌":
         challenge.quit_challenge(user.id)
@@ -226,6 +222,19 @@ def card_game_card_selection_handler(emoji: discord.PartialEmoji, message: disco
         #except Exception as e:
             #message_list.append(SimpleDiscordMessage(content=str(e), channel=user))
 
+        if not game.is_game_over():
+            if game.is_round_start():
+                message_list += get_all_players_card_dm(game=game)
+            message_list.append(get_next_player_message(discord_game=discord_game))
+        else:
+            winners_str= "Game Winner"
+            winners = game.get_game_winners()
+            if len(winners) > 1:
+                winners_str += "s"
+            winners_str += ":"
+            for winner in winners:
+                winners_str += f" <@{winner}>"
+            message_list.append(SimpleDiscordMessage(content=winners_str, channel=discord_game.channel))
 
     return message_list
 
@@ -300,6 +309,13 @@ def player_cards_dm(user, cards: List[PlayingCard]) -> SimpleDiscordMessage:
     message = SimpleDiscordMessage(content=content, embed=embed, channel=user)
     return message
 
+def get_all_players_card_dm(game: CardGame) -> List[SimpleDiscordMessage]:
+    message_list = []
+    for player_id in game.players:
+        #print(f"player: {player_id}")
+        cards = game.players[player_id].show_hand()
+        message_list.append(player_cards_dm(user=player_id, cards=cards))
+    return message_list
 
 def card_select_dm(cards: List[PlayingCard], player_id, game: CardGame):
     content = "(card_games) <card_selection>"
@@ -324,27 +340,31 @@ def get_table_embed(game: CardGame) -> discord.Embed:
     #get the players by order and the plays made
     player_order = game.get_player_order()
     n_players = len(game.players)
-    plays = game.get_plays_from_current_round()
+    plays = game.get_plays_from_last_played_round()
     n_plays = len(plays)
+    #if the player was the last playing, then the round is over so it needs to show the previous round(where the last player played)
+    is_end_round = game.is_round_start() #if its the start of the round, we show the end of previous round
     n_players_is_odd = True if (n_players % 2) != 0 else False
-    first_player_id = plays[0].player_key
     #get first player index
     top_player_index = 0
+    first_player_id = plays[0].player_key if n_plays > 0 else player_order[0]
     i=0
     offset = 0
+    #print(f"N_PLAYS: {n_plays}")
     for player_id in player_order:
         if player_id == top_player_id:
             top_player_index = i
-            
+              
         #checks if player order is the same as the order that the round was played
         if player_id == first_player_id:
             offset = i
         i += 1
 
-    if offset != 0:
-        player_order = player_order[offset:] + player_order[:offset]
-        
-    embed = discord.Embed(title="Player table", description=f"Round: {game.current_round}")
+    #if offset != 0:
+        #print("OOOOFFFFFSEEEEEET")
+       # player_order = player_order[offset:] + player_order[:offset]
+    game_round = game.current_round -1 if is_end_round else game.current_round
+    embed = discord.Embed(title="Player table", description=f"Round: {game_round}")
     players_added = 0
     #number used to know if there is plays still to be added
     while players_added < n_players:
@@ -364,6 +384,7 @@ def get_table_embed(game: CardGame) -> discord.Embed:
             player2name = game.get_player_name(player_order[player2_index])
             card2 = plays[player2_index] if player2_index < n_plays else None
 
+            #print(f"card1: {card}     card2: {card2} \n plays: {n_plays}\n player1_index: {player_index}   player2_index: {player2_index}")
             players_added += 1
             #adds a shorter line if its the last line or if its the first line in a even player game
             if (n_players - players_added) == 2 or players_added == 0: 
@@ -375,6 +396,8 @@ def get_table_embed(game: CardGame) -> discord.Embed:
             
 
         players_added += 1
+        if is_end_round:
+            embed.add_field(name="Round Winner", value= game.get_player_name(game.get_round_winner(current_round=game_round)), inline=False)
 
     return embed
 
