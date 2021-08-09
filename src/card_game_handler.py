@@ -344,7 +344,7 @@ def get_table_embed(game: CardGame) -> discord.Embed:
     if offset != 0:
         player_order = player_order[offset:] + player_order[:offset]
         
-    embed = discord.Embed(title="Player table")
+    embed = discord.Embed(title="Player table", description=f"Round: {game.current_round}")
     players_added = 0
     #number used to know if there is plays still to be added
     while players_added < n_players:
@@ -353,7 +353,7 @@ def get_table_embed(game: CardGame) -> discord.Embed:
         player_index = aux if aux < n_players else aux - n_players 
         #gets the info of at least 1 player
         player_name = game.get_player_name(player_order[player_index])
-        card = plays[player_index].card if player_index < n_plays else None
+        card = plays[player_index] if player_index < n_plays else None
         if (n_players_is_odd and players_added == 0) or players_added == n_players - 1:
             add_single_player_line_to_embed(player_name = player_name, embed=embed, played_card=card)
         else:
@@ -362,7 +362,7 @@ def get_table_embed(game: CardGame) -> discord.Embed:
             player2_index = player2_index_aux if player2_index_aux >= 0 else player2_index_aux + n_players
 
             player2name = game.get_player_name(player_order[player2_index])
-            card2 = plays[player2_index].card if player2_index < n_plays else None
+            card2 = plays[player2_index] if player2_index < n_plays else None
 
             players_added += 1
             #adds a shorter line if its the last line or if its the first line in a even player game
@@ -384,18 +384,22 @@ def add_single_player_line_to_embed(player_name, embed: discord.Embed, played_ca
     return
 
 def add_two_player_line_to_embed(player1name, player2name, embed: discord.Embed, played_card1: PlayedCard, played_card2: PlayedCard):
-    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else " "
-    embed.add_field(name=f"{player1name}", value=card1str)
-    embed.add_field(name=f"        ", value="        ")
-    card2str = CardImageDictionary.get_card_emoji(rank=played_card2.card.rank, suit=played_card2.card.suit) if not played_card2 is None else " "
-    embed.add_field(name=f"{player2name}", value=card2str)
+    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else "\u00A0"
+    card2str = CardImageDictionary.get_card_emoji(rank=played_card2.card.rank, suit=played_card2.card.suit) if not played_card2 is None else "\u00A0"
+    name = f"{player1name}" + f"\u00A0" * 16 + player2name  #adds spaces with a different char so discord wont delete them
+    line_value = f"{card1str}" + f"\u00A0" * (16 + (len(player1name)-1)) + card2str
+    embed.add_field(name=name, value=line_value)
+    #embed.add_field(name=f"        ", value="        ")
+    #embed.add_field(name=f"    {player2name}", value=f"    {card2str}", inline=True)
 
 def add_two_player_close_line_to_embed(player1name, player2name, embed: discord.Embed, played_card1: PlayedCard, played_card2: PlayedCard):
-    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else " "
-    embed.add_field(name=f"{player1name}", value=card1str)
-    embed.add_field(name=f"     ", value="     ")
-    card2str = CardImageDictionary.get_card_emoji(rank=played_card2.card.rank, suit=played_card2.card.suit) if not played_card2 is None else " "
-    embed.add_field(name=f"{player2name}", value=card2str)
+    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else "\u00A0"
+    card2str = CardImageDictionary.get_card_emoji(rank=played_card2.card.rank, suit=played_card2.card.suit) if not played_card2 is None else "\u00A0"
+    name = f"{player1name}" + "\u00A0" * 8 + player2name
+    line_value = f"{card1str}" + "\u00A0" * (8 + (len(player1name)-1)) + card2str
+    embed.add_field(name=name, value=line_value)
+    #embed.add_field(name="     ", value="     ")
+    #embed.add_field(name=f"   {player2name}", value=f"   {card2str}", inline=True)
 
 #useless
 def get_table_message_string(game: CardGame) -> str:
