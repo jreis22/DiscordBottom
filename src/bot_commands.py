@@ -1,3 +1,4 @@
+from logging import error
 from typing import List
 import discord
 from discord.ext import commands
@@ -122,7 +123,11 @@ def validate_game_challenge_args(members: commands.Greedy[discord.User], game_ty
         return SimpleDiscordMessage(content=f"Number of users tagged falls short by {extra_player}")
 
 async def send_simple_discord_message(channel: discord.abc.Messageable, message: SimpleDiscordMessage):
-    sent_message = await channel.send(content=message.content, embed=message.embed)
+    try:
+        sent_message = await channel.send(content=message.content, embed=message.embed)
 
-    for reaction in message.reactions:
-        await sent_message.add_reaction(reaction)
+        for reaction in message.reactions:
+            await sent_message.add_reaction(reaction)
+    except Exception as e:
+        print(e)
+        print(message.content)
