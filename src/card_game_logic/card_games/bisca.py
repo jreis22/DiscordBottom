@@ -31,11 +31,19 @@ class Bisca(TrickTakingGame):
     #    CardGame.start_game(self)
      #   self.current_round = 1
 
+    def start_game(self):
+        super().start_game()
+        self.last_card = self.card_deck.get_last_card()
+        self.trump_suit = self.last_card.suit
+
     def get_deck_format(self) -> DeckFormat:
         return DeckFormat.FORTY
 
     def get_rank_dictionary(self) -> CardValuesEnum:
         return CardValuesEnum.ACE_SEVEN.value
+
+    def get_last_card(self) -> PlayingCard:
+        return self.last_card
 
     def is_card_suit_valid(self, player: CardPlayer, card: PlayingCard) -> bool:
         if self.card_deck.is_empty():

@@ -1,6 +1,9 @@
+from typing import List
 from card_game_logic.card_games.game_state import GameStateEnum
+from card_game_logic.card_games.played_card import PlayedCard
 from card_game_logic.card_games.trick_taking_game import TrickTakingGame
 from card_game_logic.card_games.card_values_enum import CardValuesEnum
+from card_game_logic.cards.card import PlayingCard
 from card_game_logic.cards.card_deck import CardDeck
 from card_game_logic.cards.card_enums import DeckFormat
 from card_game_logic.cards.card_enums import Suit
@@ -11,7 +14,7 @@ class Sueca(TrickTakingGame):
     def __init__(self, players: dict, current_suit: Suit = Suit.JOKER,
                  trump_suit: Suit = Suit.JOKER,
                  current_round: int = 1, card_deck: CardDeck = None,
-                 player_order: [] = None, first_player_id=None, played_cards: [] = None, game_state: GameStateEnum = GameStateEnum.CREATED):
+                 player_order: list = None, first_player_id=None, played_cards: List[PlayedCard] = None, game_state: GameStateEnum = GameStateEnum.CREATED):
 
         if len(players) != 4:
             raise Exception("Must have 2 players to start game")
@@ -32,3 +35,15 @@ class Sueca(TrickTakingGame):
 
     def get_rank_dictionary(self) -> CardValuesEnum:
         return CardValuesEnum.ACE_SEVEN.value
+    
+    def start_game(self):
+        self.card_deck.build_deck()
+        self.card_deck.shuffle()
+        self.last_card = self.card_deck.get_last_card()
+        self.trump_suit = self.last_card.suit
+        self.deal_cards()
+        self.order_players()
+        self.game_state = GameStateEnum.STARTED
+    
+    def get_last_card(self) -> PlayingCard:
+        return self.last_card

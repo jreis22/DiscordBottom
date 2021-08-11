@@ -23,6 +23,9 @@ class TrickTakingGame(CardGame):
         self.trump_suit = trump_suit
         self.current_round = current_round
 
+    def set_trump_suit(self, suit: Suit):
+        self.trump_suit = suit
+
     def _play_card(self, player: CardPlayer, card: PlayingCard):
         
         if self.is_round_start():
@@ -100,7 +103,7 @@ class TrickTakingGame(CardGame):
                 points += point_dict[play.card.rank.value]
 
         return points
-
+    
     def compare_cards(self, card1: PlayingCard, card2: PlayingCard, round_suit: Suit) -> PlayingCard:
         if card1.suit == card2.suit:
             return self.rank_comparison(card1, card2)
