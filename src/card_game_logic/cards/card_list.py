@@ -57,6 +57,9 @@ class CardList:
     def add_cards(self, cards: List[PlayingCard]):
         self._card_list = self._card_list + cards
 
+    def get_last_card(self):
+        return self._card_list[len(self._card_list)-1]
+    
     def list_size(self):
         return len(self._card_list)
 
@@ -69,7 +72,23 @@ class CardList:
 
     def sort_by_suit(self):
         self.sort_by_rank()
-        self._card_list.sort(key=lambda x: x.suit)
+        hearts = []
+        clubs = []
+        spades = []
+        diamonds = []
+        jokers = []
+        for card in self._card_list:
+            if card.suit == Suit.HEARTS:
+                hearts.append(card)
+            elif card.suit == Suit.CLUBS:
+                clubs.append(card)
+            elif card.suit == Suit.SPADES:
+                spades.append(card)
+            elif card.suit == Suit.DIAMONDS:
+                diamonds.append(card)
+            else:
+                jokers.append(card)
+        self._card_list = hearts + spades + diamonds + clubs + jokers
 
     def is_empty(self):
         return len(self._card_list) == 0

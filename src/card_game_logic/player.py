@@ -40,6 +40,9 @@ class CardPlayer:
         else:
             self.card_hand = CardHand(card_list=card_list)
 
+    def order_card_hand(self):
+        self.card_hand.sort_by_suit()
+
     def show_hand(self) -> List[PlayingCard]:
         return self.card_hand.show_cards()
 
@@ -51,6 +54,11 @@ class CardPlayer:
 
     def deal_cards(self, card_hand: List[PlayingCard]):
         self.card_hand.add_cards(card_hand)
+        self.order_card_hand()
+
+    def deal_card(self, card: PlayingCard):
+        self.card_hand.add_card(card)
+        self.order_card_hand()
 
     def add_points(self, points: int) -> int:
         self.points += points
