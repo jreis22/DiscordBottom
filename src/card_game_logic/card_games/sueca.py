@@ -43,7 +43,15 @@ class Sueca(TrickTakingGame):
         self.trump_suit = self.last_card.suit
         self.deal_cards()
         self.order_players()
+        self.last_card_owner = None
+        for player_id in self.player_order:
+            if self.player_has_card(player_id=player_id, suit=self.last_card.suit, rank=self.last_card.rank):
+                self.last_card_owner = player_id
+                break
         self.game_state = GameStateEnum.STARTED
     
+    def get_last_card_owner(self):
+        return self.last_card_owner
+
     def get_last_card(self) -> PlayingCard:
         return self.last_card

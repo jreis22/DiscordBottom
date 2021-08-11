@@ -1,6 +1,6 @@
 import uuid
 from typing import List
-
+from card_game_logic.cards.card_enums import Rank, Suit
 from card_game_logic.player import CardPlayer
 from card_game_logic.cards.card_deck import CardDeck
 from card_game_logic.cards.card_enums import DeckFormat
@@ -44,7 +44,6 @@ class CardGame():
         self.players = {}
         if not players is None:
             for player in players:
-                player.set_state_playing()
                 self.players[player.player_id] = player
 
     def set_all_players_playing(self):
@@ -64,6 +63,9 @@ class CardGame():
     #the default deck for the game being played (override if a different deck is used)
     def get_deck_format(self) -> DeckFormat:
         return DeckFormat.FIFTY_TWO
+
+    def is_deck_empty(self) -> bool:
+        return self.card_deck.is_empty()
 
     def get_player_order(self): 
         return self.player_order.copy()
@@ -135,6 +137,9 @@ class CardGame():
 
         return player.show_hand()
     
+    def player_has_card(self, player_id, suit: Suit, rank: Rank) -> bool:
+        return self.players[player_id].has_card(PlayingCard(suit=suit, rank=rank))
+
     def get_player_valid_cards(self, player_key):
         player = self.players[player_key]
 
@@ -289,6 +294,7 @@ class CardGame():
         self.card_deck.shuffle()
         self.deal_cards()
         self.order_players()
+        self.set_all_players_playing()
         self.game_state = GameStateEnum.STARTED
 
     def order_players(self):

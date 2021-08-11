@@ -27,6 +27,7 @@ from card_game_logic.repositories.in_memory_challenge_repository import InMemory
 challenge_repo = InMemoryChallengeRepository()
 game_repo = DiscordCardGameInMemoryRepo()
 
+CARD_GAME_MESSAGE_STR = "♥️♣️♦️♠️"
 
 def show_random_card() -> PlayingCard:
     rank = np.random.choice(Rank.get_all())
@@ -78,7 +79,7 @@ def create_card_game_challenge_handler(challenger: discord.User, teams: dict, me
     embed.set_image(url=get_card_image_url(show_random_card()))
     embed.set_footer(text=str(challenge.id))
     # , icon_url="https://cdn.discordapp.com/emojis/817060615079067718.png?v=1")
-    content = "(card_games) <challenge>:"
+    content = f"{CARD_GAME_MESSAGE_STR} challenge:"
     for member in members:
         content += f" {member.mention}"
 
@@ -119,9 +120,9 @@ def card_game_reaction_handler(emoji: discord.PartialEmoji, message: discord.Mes
     # if isinstance(channel, discord.user):
     #   if()
 
-    if "<challenge>" in message.content:
+    if "challenge:" in message.content:
         return card_game_challenge_reaction_handler(emoji=emoji, message=message, user=user)
-    elif "<card_selection>" in message.content:
+    elif "card_selection:" in message.content:
         return card_game_card_selection_handler(emoji=emoji, message=message, user=user)
 
 ######## handles card games challenges
@@ -153,10 +154,23 @@ def card_game_challenge_reaction_handler(emoji: discord.PartialEmoji, message: d
 
         if challenge.is_accepted():
             discord_game = create_card_game_handler(challenge=challenge, messageable=message.channel)
-
             message_list += get_all_players_card_dm(game=discord_game.get_game())
 
             content += "\nChallenge was accepted, game was created"
+            try:
+                trump_suit = discord_game.game.trump_suit
+                if trump_suit != Suit.JOKER:
+                    content += f"\ntrump suit: {CardImageDictionary.get_suit_emoji(suit=trump_suit)} ({trump_suit.name})"
+            except AttributeError:
+                pass
+            try:
+                last_card = discord_game.game.last_card
+                content += f"\nlast card: {CardImageDictionary.get_card_emoji(suit=last_card.suit, rank=last_card.rank)} ({last_card})"
+                if discord_game.game.last_card_owner:
+                    content += f"  belongs to {discord_game.game.get_player_name(discord_game.game.last_card_owner)}"
+            except AttributeError:
+                pass        
+
             message_list.append(get_next_player_message(discord_game=discord_game))
 
     elif str(emoji) == "❌":
@@ -238,9 +252,9 @@ def card_game_card_selection_handler(emoji: discord.PartialEmoji, message: disco
 
     return message_list
 
-def get_card_played_server_message(user: discord.User, card:PlayingCard,discord_game: DiscordCardGame) -> SimpleDiscordMessage:
+def get_card_played_server_message(user: discord.User, card:PlayingCard, discord_game: DiscordCardGame) -> SimpleDiscordMessage:
     embed = get_table_embed(game=discord_game.game)
-    message = SimpleDiscordMessage(content=f"{user.mention} has played {card}", embed=embed, channel=discord_game.channel)
+    message = SimpleDiscordMessage(content=f"{user.mention} has played {card} {CardImageDictionary.get_card_emoji(suit=card.suit, rank=card.rank)}", embed=embed, channel=discord_game.channel)
     return message
 
 def get_next_player_message(discord_game: DiscordCardGame) -> SimpleDiscordMessage:
@@ -304,7 +318,7 @@ def cards_to_emoji_list(cards: List[PlayingCard]) -> List[str]:
 
 
 def player_cards_dm(user, cards: List[PlayingCard]) -> SimpleDiscordMessage:
-    content = "(card_games) <card_hand>"
+    content = f"{CARD_GAME_MESSAGE_STR} card_hand:"
     embed = discord.Embed(title="Your cards", description=cards_to_emoji(cards))
     message = SimpleDiscordMessage(content=content, embed=embed, channel=user)
     return message
@@ -318,8 +332,12 @@ def get_all_players_card_dm(game: CardGame) -> List[SimpleDiscordMessage]:
     return message_list
 
 def card_select_dm(cards: List[PlayingCard], player_id, game: CardGame):
-    content = "(card_games) <card_selection>"
+    content = f"{CARD_GAME_MESSAGE_STR} card_selection:"
     embed = discord.Embed(title="Pick a card", description=f"Round: {game.current_round}")
+    if game.trump_suit and game.trump_suit != Suit.JOKER:
+        suit = game.trump_suit
+        value = f"{CardImageDictionary.get_suit_emoji(suit=suit)} ({suit.name})"
+        embed.add_field(name="Trump Suit", value=value)
     embed.set_footer(text=str(game.get_id()))
     return SimpleDiscordMessage(content=content, embed=embed, reactions=cards_to_emoji_list(cards), channel=player_id)
 
@@ -360,26 +378,34 @@ def get_table_embed(game: CardGame) -> discord.Embed:
             offset = i
         i += 1
 
-    #if offset != 0:
-        #print("OOOOFFFFFSEEEEEET")
-       # player_order = player_order[offset:] + player_order[:offset]
-    game_round = game.current_round -1 if is_end_round else game.current_round
+    #done so the player order and plays order have the same order
+    if offset != 0:
+        player_order = player_order[offset:] + player_order[:offset]
+    
+    #update the top player index post rotation
+    top_player_index += offset
+    if top_player_index >= n_players:
+        top_player_index -= n_players
+
+    game_round = plays[0].round if n_plays > 0 else game.current_round
     embed = discord.Embed(title="Player table", description=f"Round: {game_round}")
     players_added = 0
     #number used to know if there is plays still to be added
     while players_added < n_players:
-        player_offset = (players_added >> 1) + (1 * n_players_is_odd)
-        aux = top_player_index + player_offset
-        player_index = aux if aux < n_players else aux - n_players 
+        player_index = top_player_index + (players_added >> 1) + (1 * n_players_is_odd * players_added > 0)
+        if player_index >= n_players:
+            player_index -= n_players
+
         #gets the info of at least 1 player
         player_name = game.get_player_name(player_order[player_index])
         card = plays[player_index] if player_index < n_plays else None
         if (n_players_is_odd and players_added == 0) or players_added == n_players - 1:
             add_single_player_line_to_embed(player_name = player_name, embed=embed, played_card=card)
         else:
-            
-            player2_index_aux = top_player_index - players_added - (1 * (not n_players_is_odd))
-            player2_index = player2_index_aux if player2_index_aux >= 0 else player2_index_aux + n_players
+            player2_index = top_player_index - 1 - (players_added >> 1)
+
+            if player2_index < 0:
+                player2_index += n_players
 
             player2name = game.get_player_name(player_order[player2_index])
             card2 = plays[player2_index] if player2_index < n_plays else None
