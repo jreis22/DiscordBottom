@@ -100,7 +100,7 @@ async def on_raw_reaction_add(payload):
     message = await channel.fetch_message(payload.message_id)
     emoji = payload.emoji
     if message.author == bot.user:
-        message.content.startswith("(card_games)")
+        message.content.startswith(f"{card_dealer.CARD_GAME_MESSAGE_STR}")
         message_list = card_dealer.card_game_reaction_handler(emoji=emoji, message=message, user=user)
 
         if not message_list is None:
