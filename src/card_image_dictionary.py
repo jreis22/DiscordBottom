@@ -25,6 +25,10 @@ class CardImageDictionary:
         return PlayingCard(suit=suit, rank=rank)
 
     @staticmethod
+    def get_suit_emoji(suit: Suit) -> str:
+        return CardImageDictionary._cardImageDict[suit.name]["EMOJI"]
+
+    @staticmethod
     def get_card_image_url(suit: Suit, rank: Rank):
         id = CardImageDictionary._cardImageDict[suit.name][rank.name]["EMOJI_ID"]
 
