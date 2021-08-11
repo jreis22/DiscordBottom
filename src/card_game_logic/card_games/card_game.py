@@ -24,7 +24,7 @@ class CardGame():
         self.set_played_cards(played_cards)
         self._set_id_(game_id)
         self.current_round = current_round
-        self.first_player_id = first_player_id,
+        self.first_player_id = first_player_id
         self.game_winners = game_winners
 
     # setters & getters
