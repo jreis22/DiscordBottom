@@ -77,7 +77,7 @@ def create_card_game_challenge_handler(challenger: discord.User, teams: dict, me
     content = f"{CARD_GAME_MESSAGE_STR} challenge:"
     game_name = game_type.name.title()
     content += f", {challenger.mention} challenged you to a game of {game_name}"
-    embed = discord.Embed(title=f"{game_name.name.title()} Challenge",
+    embed = discord.Embed(title=f"{game_name} Challenge",
                           description=f"A challenge to a card game of {game_name}")
     embed.set_image(url=get_card_image_url(show_random_card()))
     embed.set_footer(text=str(challenge.id))
@@ -216,6 +216,7 @@ def card_game_card_selection_handler(emoji: discord.PartialEmoji, message: disco
     content = None
     message_list = []
     channel = user
+    game_round = int(message.embeds[0].description.split()[1])
     if not game.has_player(user.id):
         content = f"{user.mention} you are not a part of that game"
 
@@ -224,35 +225,39 @@ def card_game_card_selection_handler(emoji: discord.PartialEmoji, message: disco
         simple_message = SimpleDiscordMessage(
             content=content, channel=channel)
         message_list.append(simple_message)
-
-    # elif game.is_game_over():
-    #     content = "Game has already ended"
-    #     simple_message = SimpleDiscordMessage(
-    #         content=content, channel=channel)
-    #     message_list.append(simple_message)
-    else:
+    #elif game_round != game.current_round:
+    #    content = f"That round was already played"
+    #    simple_message = SimpleDiscordMessage(
+    #        content=content, channel=channel)
+    #    message_list.append(simple_message)
+    elif game_round == game.current_round:
         #try:
         card = CardImageDictionary.get_card_by_id(emoji.id)
-        discord_game.game.play_card(player_key=user.id, card=card)
-        game_repo.update(game_id=discord_game.get_id(), game=discord_game)
-        message_list.append(get_card_played_server_message(user=user, card=card, discord_game=discord_game))
-        #except Exception as e:
-            #message_list.append(SimpleDiscordMessage(content=str(e), channel=user))
+        try:
+            discord_game.game.play_card(player_key=user.id, card=card)
+            game_repo.update(game_id=discord_game.get_id(), game=discord_game)
+            message_list.append(get_card_played_server_message(user=user, card=card, discord_game=discord_game))
+            #except Exception as e:
+                #message_list.append(SimpleDiscordMessage(content=str(e), channel=user))
 
-        if not game.is_game_over():
-            if game.is_round_start():
-                message_list += get_all_players_card_dm(game=game)
-            message_list.append(get_next_player_message(discord_game=discord_game))
-        else:
-            winners_str= "Game Winner"
-            winners = game.get_game_winners()
-            if len(winners) > 1:
-                winners_str += "s"
-            winners_str += ":"
-            for winner in winners:
-                winners_str += f" <@{winner}>"
-            message_list.append(SimpleDiscordMessage(content=winners_str, channel=discord_game.channel))
-
+            if not game.is_game_over():
+                if game.is_round_start():
+                    message_list += get_all_players_card_dm(game=game)
+                message_list.append(get_next_player_message(discord_game=discord_game))
+            else:
+                winners_str= "Game Winner"
+                winners = game.get_game_winners()
+                if len(winners) > 1:
+                    winners_str += "s"
+                winners_str += ":"
+                for winner in winners:
+                    winners_str += f" <@{winner}>"
+                message_list.append(SimpleDiscordMessage(content=winners_str, channel=discord_game.channel))
+        except Exception as e:
+            content = e
+            simple_message = SimpleDiscordMessage(
+                content=content, channel=channel)
+            message_list.append(simple_message)
     return message_list
 
 def get_card_played_server_message(user: discord.User, card:PlayingCard, discord_game: DiscordCardGame) -> SimpleDiscordMessage:
@@ -395,13 +400,14 @@ def get_table_embed(game: CardGame) -> discord.Embed:
     players_added = 0
     #number used to know if there is plays still to be added
     while players_added < n_players:
-        player_index = top_player_index + (players_added >> 1) + (1 * n_players_is_odd * players_added > 0)
+        player_index = top_player_index + (players_added >> 1) + (1 * n_players_is_odd * (players_added > 0))
         if player_index >= n_players:
             player_index -= n_players
 
         #gets the info of at least 1 player
         player_name = game.get_player_name(player_order[player_index])
         card = plays[player_index] if player_index < n_plays else None
+        
         if (n_players_is_odd and players_added == 0) or players_added == n_players - 1:
             add_single_player_line_to_embed(player_name = player_name, embed=embed, played_card=card)
         else:
@@ -436,11 +442,11 @@ def add_single_player_line_to_embed(player_name, embed: discord.Embed, played_ca
     return
 
 def add_two_player_line_to_embed(player1name, player2name, embed: discord.Embed, played_card1: PlayedCard, played_card2: PlayedCard):
-    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else "\u00A0"
+    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else "."
     card2str = CardImageDictionary.get_card_emoji(rank=played_card2.card.rank, suit=played_card2.card.suit) if not played_card2 is None else "\u00A0"
     name = f"{player1name}" + f"\u00A0" * 16 + player2name  #adds spaces with a different char so discord wont delete them
-    line_value = f"{card1str}" + f"\u00A0" * (16 + (len(player1name)-1)) + card2str
-    embed.add_field(name=name, value=line_value)
+    line_value = f"{card1str}" + f"\u00A0" * (17 + (len(player1name)-1)) + card2str
+    embed.add_field(name=name, value=line_value, inline=True)
     #embed.add_field(name=f"        ", value="        ")
     #embed.add_field(name=f"    {player2name}", value=f"    {card2str}", inline=True)
 
