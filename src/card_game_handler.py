@@ -74,16 +74,19 @@ def create_card_game_challenge_handler(challenger: discord.User, teams: dict, me
     challenge_repo.insert(challenge)
 
 ######################################
-    embed = discord.Embed(title=f"{game_type.name} Challenge",
-                          description=f"A challenge to a card game of {game_type.name}")
+    content = f"{CARD_GAME_MESSAGE_STR} challenge:"
+    game_name = game_type.name.title()
+    content += f", {challenger.mention} challenged you to a game of {game_name}"
+    embed = discord.Embed(title=f"{game_name.name.title()} Challenge",
+                          description=f"A challenge to a card game of {game_name}")
     embed.set_image(url=get_card_image_url(show_random_card()))
     embed.set_footer(text=str(challenge.id))
     # , icon_url="https://cdn.discordapp.com/emojis/817060615079067718.png?v=1")
-    content = f"{CARD_GAME_MESSAGE_STR} challenge:"
+    
     for member in members:
         content += f" {member.mention}"
 
-    content += f", {challenger.mention} challenged you to a game of {game_type.name}"
+    content += f", {challenger.mention} challenged you to a game of {game_name}"
     message = SimpleDiscordMessage(
         content=content, embed=embed, reactions=["✅", "❌"])
 
@@ -160,7 +163,7 @@ def card_game_challenge_reaction_handler(emoji: discord.PartialEmoji, message: d
             try:
                 trump_suit = discord_game.game.trump_suit
                 if trump_suit != Suit.JOKER:
-                    content += f"\ntrump suit: {CardImageDictionary.get_suit_emoji(suit=trump_suit)} ({trump_suit.name})"
+                    content += f"\ntrump suit: {CardImageDictionary.get_suit_emoji(suit=trump_suit)} ({trump_suit.name.title()})"
             except AttributeError:
                 pass
             try:
@@ -336,7 +339,7 @@ def card_select_dm(cards: List[PlayingCard], player_id, game: CardGame):
     embed = discord.Embed(title="Pick a card", description=f"Round: {game.current_round}")
     if game.trump_suit and game.trump_suit != Suit.JOKER:
         suit = game.trump_suit
-        value = f"{CardImageDictionary.get_suit_emoji(suit=suit)} ({suit.name})"
+        value = f"{CardImageDictionary.get_suit_emoji(suit=suit)} ({suit.name.title()})"
         embed.add_field(name="Trump Suit", value=value)
     embed.set_footer(text=str(game.get_id()))
     return SimpleDiscordMessage(content=content, embed=embed, reactions=cards_to_emoji_list(cards), channel=player_id)

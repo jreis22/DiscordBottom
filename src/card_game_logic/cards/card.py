@@ -21,7 +21,7 @@ class PlayingCard(object):
         return False
     
     def __str__(self):
-        return self.rank.name + ' of ' + self.suit.name
+        return self.rank.name.title() + ' of ' + self.suit.name.title()
         
 #card1 = PlayingCard(suit=Suit.HEARTS, rank=Rank.ACE)
 #print(card1)
