@@ -236,14 +236,18 @@ def card_game_card_selection_handler(emoji: discord.PartialEmoji, message: disco
         try:
             discord_game.game.play_card(player_key=user.id, card=card)
             game_repo.update(game_id=discord_game.get_id(), game=discord_game)
-            message_list.append(get_card_played_server_message(user=user, card=card, discord_game=discord_game))
+            table = get_table_embed(game=discord_game.game)
+            message_list.append(get_card_played_server_message(user=user, card=card, discord_game=discord_game, table=table))
             #except Exception as e:
                 #message_list.append(SimpleDiscordMessage(content=str(e), channel=user))
 
             if not game.is_game_over():
                 if game.is_round_start():
                     message_list += get_all_players_card_dm(game=game)
-                message_list.append(get_next_player_message(discord_game=discord_game))
+                    message_list.append(get_next_player_message(discord_game=discord_game))
+                else:
+                    message_list.append(get_next_player_message(discord_game=discord_game, table=table))
+                
             else:
                 winners_str= "Game Winner"
                 winners = game.get_game_winners()
@@ -260,18 +264,21 @@ def card_game_card_selection_handler(emoji: discord.PartialEmoji, message: disco
             message_list.append(simple_message)
     return message_list
 
-def get_card_played_server_message(user: discord.User, card:PlayingCard, discord_game: DiscordCardGame) -> SimpleDiscordMessage:
-    embed = get_table_embed(game=discord_game.game)
+def get_card_played_server_message(user: discord.User, card:PlayingCard, discord_game: DiscordCardGame, table: discord.Embed=None) -> SimpleDiscordMessage:
+    if table is None:
+        embed = get_table_embed(game=discord_game.game)
+    else:
+        embed = table
     message = SimpleDiscordMessage(content=f"{user.mention} has played {card} {CardImageDictionary.get_card_emoji(suit=card.suit, rank=card.rank)}", embed=embed, channel=discord_game.channel)
     return message
 
-def get_next_player_message(discord_game: DiscordCardGame) -> SimpleDiscordMessage:
+def get_next_player_message(discord_game: DiscordCardGame, table: discord.Embed=None) -> SimpleDiscordMessage:
     if discord_game.game.is_game_over():
         return get_game_over_message(discord_game=discord_game)
 
     next_player = discord_game.game.get_next_player()
     message = card_select_dm(player_id=next_player.player_id, game=discord_game.game,
-                                cards=get_player_valid_cards(player_id=next_player.player_id, card_game=discord_game.game))
+                                cards=get_player_valid_cards(player_id=next_player.player_id, card_game=discord_game.game), table=table)
     return message
 
 def get_game_over_message(discord_game: DiscordCardGame):
@@ -338,10 +345,21 @@ def get_all_players_card_dm(game: CardGame) -> List[SimpleDiscordMessage]:
         cards = game.players[player_id].show_hand()
         message_list.append(player_cards_dm(user=player_id, cards=cards))
     return message_list
+def get_all_players_round_end_dm(game: CardGame, table: discord.Embed=None):
+    message_list = []
+    content = "game.get"  #####TODO send end of round message to everyone
+    for player_id in game.players:
+        #print(f"player: {player_id}")
+        cards = game.players[player_id].show_hand()
+        message_list.append(SimpleDiscordMessage(content = content))
+    return message_list
 
-def card_select_dm(cards: List[PlayingCard], player_id, game: CardGame):
+def card_select_dm(cards: List[PlayingCard], player_id, game: CardGame, table: discord.Embed=None) -> SimpleDiscordMessage:
     content = f"{CARD_GAME_MESSAGE_STR} card_selection:"
-    embed = discord.Embed(title="Pick a card", description=f"Round: {game.current_round}")
+    if table != None:
+        embed = table
+        table.title = "Pick a card"
+    else : embed = discord.Embed(title="Pick a card", description=f"Round: {game.current_round}")
     if game.trump_suit and game.trump_suit != Suit.JOKER:
         suit = game.trump_suit
         value = f"{CardImageDictionary.get_suit_emoji(suit=suit)} ({suit.name.title()})"
@@ -442,7 +460,7 @@ def add_single_player_line_to_embed(player_name, embed: discord.Embed, played_ca
     return
 
 def add_two_player_line_to_embed(player1name, player2name, embed: discord.Embed, played_card1: PlayedCard, played_card2: PlayedCard):
-    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else "."
+    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else "." + "\u00A0"*3
     card2str = CardImageDictionary.get_card_emoji(rank=played_card2.card.rank, suit=played_card2.card.suit) if not played_card2 is None else "\u00A0"
     name = f"{player1name}" + f"\u00A0" * 16 + player2name  #adds spaces with a different char so discord wont delete them
     line_value = f"{card1str}" + f"\u00A0" * (17 + (len(player1name)-1)) + card2str
@@ -451,7 +469,7 @@ def add_two_player_line_to_embed(player1name, player2name, embed: discord.Embed,
     #embed.add_field(name=f"    {player2name}", value=f"    {card2str}", inline=True)
 
 def add_two_player_close_line_to_embed(player1name, player2name, embed: discord.Embed, played_card1: PlayedCard, played_card2: PlayedCard):
-    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else "\u00A0"
+    card1str = CardImageDictionary.get_card_emoji(rank=played_card1.card.rank, suit=played_card1.card.suit) if not played_card1 is None else "." + "\u00A0"*3
     card2str = CardImageDictionary.get_card_emoji(rank=played_card2.card.rank, suit=played_card2.card.suit) if not played_card2 is None else "\u00A0"
     name = f"{player1name}" + "\u00A0" * 8 + player2name
     line_value = f"{card1str}" + "\u00A0" * (8 + (len(player1name)-1)) + card2str
